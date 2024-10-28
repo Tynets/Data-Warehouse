@@ -41,21 +41,16 @@ public class RatingGenerator implements Runnable {
             while (scanner.hasNext() && range > 0) {
                 String line = scanner.nextLine();
                 if (ThreadLocalRandom.current().nextFloat() > 0.95f) { range--; continue; }
-                String[] tourist = line.split(",");
-                if (!tourist[ColumnNumbers.statusTourist.get()].equals("Finished")) { range--; continue; }
+                String[] tourist = line.split("\\|");
+                if (!tourist[ColumnNumbers.statusTourist.get()].equals("'Finished'")) { range--; continue; }
                 String[] tour = agregator.getTour(tourist[ColumnNumbers.tourTourist.get()]);
-                if (!tour[ColumnNumbers.statusTour.get()].equals("Finished")) { range--; continue; }
+                if (!tour[ColumnNumbers.statusTour.get()].equals("'Finished'")) { range--; continue; }
                 String[] hotel = agregator.getHotel(tour[ColumnNumbers.hotelTour.get()]);
                 String[] rating = new String[6];
                 // Tour ID
                 rating[0] = tour[0];
                 // Hotel rating
-                float hRating = 0.0f;
-                try {
-                    hRating = Float.parseFloat(hotel[ColumnNumbers.ratingHotel.get()]);
-                } catch (NumberFormatException e) {
-                    hRating = Float.parseFloat(hotel[ColumnNumbers.ratingHotel.get() + 1]);
-                }
+                float hRating = Float.parseFloat(hotel[ColumnNumbers.ratingHotel.get()]);
                 hRating += deviation(-1, 1);
                 hRating = clipValue(hRating);
                 rating[1] = format(hRating);

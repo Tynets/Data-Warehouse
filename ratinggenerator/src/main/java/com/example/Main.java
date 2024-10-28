@@ -48,7 +48,7 @@ public class Main {
         long upper = 0;
         long range = (upper - lower + 1) / threads;
         try {
-            upper = Files.lines(Paths.get("Tourists.bulk")).count();
+            upper = Files.lines(Paths.get(tsFile)).count();
         } catch (IOException e) { e.printStackTrace(); }
         ExecutorService service = Executors.newFixedThreadPool(threads);
         Agregator<String, String[]> agregator = new Agregator<>(new ArrayDeque<>(), hotelsA.getEntities(), toursA.getEntities());

@@ -19,7 +19,7 @@ public class EntityCollector implements Runnable {
             scanner.useDelimiter("\n");
             while (scanner.hasNext()) {
                 String line = scanner.nextLine();
-                String[] split = line.split(",");
+                String[] split = line.split("\\|");
                 agregator.put(split[0], split);
             }
         } catch (FileNotFoundException e) { e.printStackTrace(); }
