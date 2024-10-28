@@ -65,7 +65,9 @@ public class Main {
         } catch (InterruptedException e) { e.printStackTrace(); }
 
         Dumper dumper = new Dumper(agregator.getRatings(), rFile);
-        dumper.dump();
+        String[] split = rFile.split("\\.");
+        if (split[1].equals("xlsx")) dumper.dumpXLSX();
+        else dumper.dumpCSV();
         System.out.println(System.currentTimeMillis() - st);
     }
 }
