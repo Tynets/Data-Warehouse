@@ -13,8 +13,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class RatingGenerator implements Runnable {
     private final Agregator<String, String[]> agregator;
-    private long lower;
-    private long upper;
     private final String entitiesFile;
 
     private float clipValue(float value) {
@@ -33,18 +31,13 @@ public class RatingGenerator implements Runnable {
     public void run() {
         try (Scanner scanner = new Scanner(new File(entitiesFile))) {
             scanner.useDelimiter("\n");
-            long range = upper - lower;
-            while (lower > 0 && scanner.hasNext()) {
-                scanner.nextLine();
-                lower--;
-            }
-            while (scanner.hasNext() && range > 0) {
+            while (scanner.hasNext()) {
                 String line = scanner.nextLine();
-                if (ThreadLocalRandom.current().nextFloat() > 0.95f) { range--; continue; }
+                if (ThreadLocalRandom.current().nextFloat() > 0.95f) continue;
                 String[] tourist = line.split("\\|");
-                if (!tourist[ColumnNumbers.statusTourist.get()].equals("'Finished'")) { range--; continue; }
+                if (!tourist[ColumnNumbers.statusTourist.get()].equals("'Finished'")) continue;
                 String[] tour = agregator.getTour(tourist[ColumnNumbers.tourTourist.get()]);
-                if (!tour[ColumnNumbers.statusTour.get()].equals("'Finished'")) { range--; continue; }
+                if (!tour[ColumnNumbers.statusTour.get()].equals("'Finished'")) continue;
                 String[] hotel = agregator.getHotel(tour[ColumnNumbers.hotelTour.get()]);
                 String[] rating = new String[6];
                 // Tour ID
@@ -69,7 +62,6 @@ public class RatingGenerator implements Runnable {
                 if (ThreadLocalRandom.current().nextFloat() > 0.9f) rec = (rec + 1) % 2;
                 rating[5] = String.valueOf(rec);
                 agregator.put(null, rating);
-                range--;
             }
         } catch (FileNotFoundException e) { e.printStackTrace(); }
     }

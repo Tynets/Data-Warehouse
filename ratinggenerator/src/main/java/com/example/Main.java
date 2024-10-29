@@ -2,9 +2,6 @@ package com.example;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -19,18 +16,20 @@ import com.example.Collectors.RatingGenerator;
 
 public class Main {
     public static void main(String[] args) {
-        int threads = 0;
         String hFile = null;
         String tFile = null;
         String tsFile = null;
+        String tsNFile = null;
         String rFile = null;
+        String rNFile = null;
         try (Scanner scanner = new Scanner(new File("config.config"))) {
             scanner.useDelimiter("\n");
-            threads = Integer.parseInt(scanner.nextLine());
             hFile = scanner.nextLine();
             tFile = scanner.nextLine();
             tsFile = scanner.nextLine();
+            tsNFile = scanner.nextLine();
             rFile = scanner.nextLine();
+            rNFile = scanner.nextLine();
         } catch (FileNotFoundException e1) { e1.printStackTrace(); }
 
         ExecutorService collectorEx = Executors.newFixedThreadPool(2);
@@ -44,30 +43,28 @@ public class Main {
             collectorEx.awaitTermination(60, TimeUnit.SECONDS);
         } catch (InterruptedException e) { e.printStackTrace(); }
 
-        long lower = 0;
-        long upper = 0;
-        long range = (upper - lower + 1) / threads;
-        try {
-            upper = Files.lines(Paths.get(tsFile)).count();
-        } catch (IOException e) { e.printStackTrace(); }
-        ExecutorService service = Executors.newFixedThreadPool(threads);
+        ExecutorService service = Executors.newFixedThreadPool(2);
         Agregator<String, String[]> agregator = new Agregator<>(new ArrayDeque<>(), hotelsA.getEntities(), toursA.getEntities());
-        for (int i = 0; i < threads; i++) {
-            long upperLocal = 0;
-            if (i != threads - 1) upperLocal = lower + range - 1;
-            else upperLocal = upper;
-            service.submit(new RatingGenerator(agregator, lower, upperLocal, tsFile));
-            lower += range;
-        }
+        Agregator<String, String[]> agregatorN = new Agregator<>(new ArrayDeque<>(), hotelsA.getEntities(), toursA.getEntities());
+        service.submit(new RatingGenerator(agregator, tsFile));
+        service.submit(new RatingGenerator(agregatorN, tsNFile));
         service.shutdown();
         try {
             service.awaitTermination(60, TimeUnit.SECONDS);
         } catch (InterruptedException e) { e.printStackTrace(); }
 
-        Dumper dumper = new Dumper(agregator.getRatings(), rFile);
         String[] split = rFile.split("\\.");
-        if (split[1].equals("xlsx")) dumper.dumpXLSX();
-        else dumper.dumpCSV();
+        String[] splitN = rNFile.split("\\.");
+        ExecutorService dumpEx = Executors.newFixedThreadPool(2);
+        dumpEx.submit(new Dumper(agregator.getRatings(), split[1], rFile));
+        for (String[] r : agregator.getRatings()) {
+            agregatorN.getRatings().addLast(r);
+        }
+        dumpEx.submit(new Dumper(agregatorN.getRatings(), splitN[1], rNFile));
+        dumpEx.shutdown();
+        try {
+            dumpEx.awaitTermination(60, TimeUnit.SECONDS);
+        } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println(System.currentTimeMillis() - st);
     }
 }

@@ -14,18 +14,19 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class Dumper {
+public class Dumper implements Runnable {
     private final Deque<String[]> ratings;
+    private final String type;
     private final String dumpFile;
 
-    public void dumpCSV() {
+    private void dumpCSV() {
         try (FileWriter writer = new FileWriter(dumpFile)) {
             for (String[] r : ratings) writer.write(String.join(",", r) + "\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public void dumpXLSX() {
+    private void dumpXLSX() {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Sheet 1");
         String[] header = { "TourID", "Hotel rating", "Beach rating", "Transportation rating", "Overall", "Recommendation" };
@@ -47,5 +48,10 @@ public class Dumper {
             workbook.write(out);
             workbook.close();
         } catch (IOException e) { e.printStackTrace(); }
+    }
+    @Override
+    public void run() {
+        if (type.equals("xlsx")) dumpXLSX();
+        else dumpCSV();
     }
 }
