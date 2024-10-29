@@ -1,2 +1,1 @@
-Ryba
-My rybochky
+Generator for TourMaster database
