@@ -23,7 +23,8 @@ public class TourGenerator implements Runnable {
     private WriterQueue queue;
     private final String[] tourStatus = {"New", "Confirmed", "Recruitment", "In progress", "Finished", "Canceled"};
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private void generateRoomResevation(int numOfTourists, Date startDate, int duration, String city, String tourID, ThreadLocalRandom random) {  
+    private double generateRoomResevation(int numOfTourists, Date startDate, int duration, String city, String tourID) {  
+        final ThreadLocalRandom random =  ThreadLocalRandom.current();
         int roomDistribution[] = new int[numOfTourists];
         int sum = 0;
         int rdSize = 0;
@@ -42,6 +43,7 @@ public class TourGenerator implements Runnable {
         }
         List<String> tourists = this.aggregator.randomClients(numOfTourists);
         int start = 0, end = 0;
+        double cumulativePrice = 0;
         for (int i = 0; i < rdSize; i++) {
             if (Thread.currentThread().isInterrupted()) break;
             StringJoiner reservationStr = new StringJoiner("|", "", "\n");
@@ -51,34 +53,40 @@ public class TourGenerator implements Runnable {
             reservationStr.add(String.valueOf(roomDistribution[i]));
             reservationStr.add(this.dateFormat.format(DateUtils.addDays(startDate, 1)));
             reservationStr.add(this.dateFormat.format(DateUtils.addDays(startDate, duration - 1)));
-            reservationStr.add(String.format(Locale.US, "%.2f", random.nextDouble(2000, 5001)));
+            double price = random.nextDouble(2000, 5001);
+            cumulativePrice += price;
+            reservationStr.add(String.format(Locale.US, "%.2f", price));
             reservationStr.add(this.aggregator.randomHotel(city));
             this.queue.put("Reserv", reservationStr.toString());
             end += roomDistribution[i];
             start = end - roomDistribution[i];
             this.generateTourist(tourID, roomDistribution[i], tourists.subList(start, end), reservationID); 
         }
-        return;
+        return cumulativePrice;
     }
-    private void generateTransportation(Date startDate, int duration, String tourID, String country, ThreadLocalRandom random) {
+    private double generateTransportation(Date startDate, int duration, String country, String tourID) {
+        final ThreadLocalRandom random =  ThreadLocalRandom.current();
         Date endDate = DateUtils.addDays(startDate, duration);
         Date startPlusOne = DateUtils.addDays(startDate, 1);
         Date endMinusOne = DateUtils.addDays(startDate, duration - 1);
         Date[][] dates = {{startDate, startDate}, {startDate, startPlusOne},
                         {startPlusOne, startPlusOne}, {endMinusOne, endMinusOne},
                         {endMinusOne, endDate}, {endDate, endDate}};
+        double cumulativePrice = 0;
         for (int i = 0; i < 6; i++) {
             if (Thread.currentThread().isInterrupted()) break;
             StringJoiner transpStr = new StringJoiner("|", "", "\n");
             transpStr.add(String.valueOf(this.aggregator.genTransoId()));
             transpStr.add(this.dateFormat.format(dates[i][0]));
             transpStr.add(this.dateFormat.format(dates[i][1]));
-            transpStr.add(String.format(Locale.US, "%.2f", random.nextDouble(500, 1001)));
+            double price = random.nextDouble(500, 1001);
+            cumulativePrice += price;
+            transpStr.add(String.format(Locale.US, "%.2f", price));
             transpStr.add(this.aggregator.randomTransporter(country));
             transpStr.add(tourID);
             this.queue.put("Transo", transpStr.toString());
         }
-        return;
+        return cumulativePrice;
     }
     private void generateTourist(String tourID, int numOfTourists, List<String> tourists, String reservationID) {
         for (int i = 0; i < numOfTourists; i++) {
@@ -110,15 +118,15 @@ public class TourGenerator implements Runnable {
             tourStr.add(this.dateFormat.format(endDate));
             tourStr.add(AddQuotMarks.addQuotMarks(country));
             tourStr.add(AddQuotMarks.addQuotMarks(city));
-            tourStr.add(String.format(Locale.US, "%.2f", random.nextDouble(5000, 20001)));
+            int maxNumOfPart = random.nextInt(5, 11);
+            double price = this.generateRoomResevation(Math.random() > 0.1 ? maxNumOfPart : maxNumOfPart - 1, startDate, duration, city, tourID);
+            price += this.generateTransportation(startDate, duration, country, tourID);
+            tourStr.add(String.format(Locale.US, "%.2f", (price * 10) / 9));
             int statusIdx = Math.random() < 0.003 ? this.tourStatus.length - 1 : this.tourStatus.length - 2;
             tourStr.add(AddQuotMarks.addQuotMarks(this.tourStatus[statusIdx]));
-            int maxNumOfPart = random.nextInt(5, 11);
             tourStr.add(String.valueOf(maxNumOfPart));
             tourStr.add(this.aggregator.randomHotel(city));
             this.queue.put("Tour", tourStr.toString());
-            this.generateRoomResevation(Math.random() > 0.1 ? maxNumOfPart : maxNumOfPart - 1, startDate, duration, city, tourID, random);
-            this.generateTransportation(startDate, duration, tourID, country, random);
         }
         return;
     }
