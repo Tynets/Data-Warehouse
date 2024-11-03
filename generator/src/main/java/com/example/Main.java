@@ -30,13 +30,13 @@ public class Main {
         for (int j = 0; j < parameters.getNClients() / Parameters.getDivisibleBy(); j++) {
             generators.submit(new ClientGenerator(Parameters.getDivisibleBy(), aggregator, queue));
         }
-        writers.submit(new Thread(new ThreadWriter(queue, "Hotel", "Hotels")));
-        writers.submit(new Thread(new ThreadWriter(queue, "Transp", "Transporters")));
-        writers.submit(new Thread(new ThreadWriter(queue, "Client", "Clients")));
-        writers.submit(new Thread(new ThreadWriter(queue, "Tour", "Tours")));
-        writers.submit(new Thread(new ThreadWriter(queue, "Reserv", "Reservations")));
-        writers.submit(new Thread(new ThreadWriter(queue, "Transo", "Transportations")));
-        writers.submit(new Thread(new ThreadWriter(queue, "Tourist", "Tourists")));
+        writers.submit(new Thread(new ThreadWriter(queue, "Hotel", "Hotels", parameters.getLoadAggregator())));
+        writers.submit(new Thread(new ThreadWriter(queue, "Transp", "Transporters", parameters.getLoadAggregator())));
+        writers.submit(new Thread(new ThreadWriter(queue, "Client", "Clients", parameters.getLoadAggregator())));
+        writers.submit(new Thread(new ThreadWriter(queue, "Tour", "Tours", parameters.getLoadAggregator())));
+        writers.submit(new Thread(new ThreadWriter(queue, "Reserv", "Reservations", parameters.getLoadAggregator())));
+        writers.submit(new Thread(new ThreadWriter(queue, "Transo", "Transportations", parameters.getLoadAggregator())));
+        writers.submit(new Thread(new ThreadWriter(queue, "Tourist", "Tourists", parameters.getLoadAggregator())));
         writers.shutdown();
         generators.shutdown();
         try {
