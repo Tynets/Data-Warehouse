@@ -4,6 +4,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -14,17 +17,29 @@ import lombok.AllArgsConstructor;
 public class ThreadWriter implements Runnable {
     private WriterQueue queue;
     private String category;
-    private String filename;
+    private String fileName;
+    private boolean toAppend;
     @Override
     public void run() {
         String dirName = "Data " + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(Calendar.getInstance().getTime());
         File dir = new File(dirName);
         if (!dir.exists()) dir.mkdirs();
         BufferedWriter writer = null;
-        try {
-            writer = new BufferedWriter(new FileWriter(dirName + "/" + this.filename + ".bulk"));
-        } catch (IOException e) {
-            e.printStackTrace();
+        String fullPath = dirName + File.separator + this.fileName + ".bulk";
+        if (this.toAppend) {
+            try {
+                Files.copy(Paths.get("DataT1" + File.separator + this.fileName + ".bulk"), Paths.get(fullPath), StandardCopyOption.REPLACE_EXISTING);
+                writer = new BufferedWriter(new FileWriter(fullPath, true));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            try {
+                writer = new BufferedWriter(new FileWriter(fullPath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         List<String> values;
         while(!Thread.currentThread().isInterrupted()) {
@@ -56,6 +71,4 @@ public class ThreadWriter implements Runnable {
         }
         return;
     }
-    
-    
 }
