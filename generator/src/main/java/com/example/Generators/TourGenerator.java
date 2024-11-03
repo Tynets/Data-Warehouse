@@ -62,7 +62,7 @@ public class TourGenerator implements Runnable {
             start = end - roomDistribution[i];
             this.generateTourist(tourID, roomDistribution[i], tourists.subList(start, end), reservationID); 
         }
-        return cumulativePrice;
+        return cumulativePrice / rdSize;
     }
     private double generateTransportation(Date startDate, int duration, String country, String tourID) {
         final ThreadLocalRandom random =  ThreadLocalRandom.current();
