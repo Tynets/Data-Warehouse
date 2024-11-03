@@ -59,8 +59,10 @@ public class Aggregator implements Serializable {
         return;
     }
     public void addClient(String clientID) {
-        this.clients.putIfAbsent(counter, clientID);
-        counter++;
+        synchronized (this.clients) {
+            this.clients.put(counter, clientID);
+            counter++;
+        }
         return;
     }
     public String randomHotel(String city) {
