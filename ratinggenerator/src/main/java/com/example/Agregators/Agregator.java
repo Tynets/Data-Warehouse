@@ -13,8 +13,8 @@ public class Agregator<K, T> {
     private final Map<K, T> hotels;
     private final Map<K, T> tours;
     
-    public synchronized void put(K id, T split) {
-        ratings.push(split);
+    public void put(T split) {
+        ratings.addLast(split);
     }
     public T getHotel(K hotelID) {
         return hotels.get(hotelID);

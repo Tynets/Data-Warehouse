@@ -43,24 +43,16 @@ public class Main {
             collectorEx.awaitTermination(60, TimeUnit.SECONDS);
         } catch (InterruptedException e) { e.printStackTrace(); }
 
-        ExecutorService service = Executors.newFixedThreadPool(2);
         Agregator<String, String[]> agregator = new Agregator<>(new ArrayDeque<>(), hotelsA.getEntities(), toursA.getEntities());
-        Agregator<String, String[]> agregatorN = new Agregator<>(new ArrayDeque<>(), hotelsA.getEntities(), toursA.getEntities());
-        service.submit(new RatingGenerator(agregator, tsFile));
-        service.submit(new RatingGenerator(agregatorN, tsNFile));
-        service.shutdown();
-        try {
-            service.awaitTermination(60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) { e.printStackTrace(); }
+        RatingGenerator rGenerator = new RatingGenerator(agregator);
+        long t1 = rGenerator.generate(tsFile);
+        long t2 = rGenerator.generate(tsNFile);
 
         String[] split = rFile.split("\\.");
         String[] splitN = rNFile.split("\\.");
         ExecutorService dumpEx = Executors.newFixedThreadPool(2);
-        dumpEx.submit(new Dumper(agregator.getRatings(), split[1], rFile));
-        for (String[] r : agregator.getRatings()) {
-            agregatorN.getRatings().addLast(r);
-        }
-        dumpEx.submit(new Dumper(agregatorN.getRatings(), splitN[1], rNFile));
+        dumpEx.submit(new Dumper(agregator.getRatings(), split[1], rFile, t1));
+        dumpEx.submit(new Dumper(agregator.getRatings(), splitN[1], rNFile, t2));
         dumpEx.shutdown();
         try {
             dumpEx.awaitTermination(60, TimeUnit.SECONDS);
