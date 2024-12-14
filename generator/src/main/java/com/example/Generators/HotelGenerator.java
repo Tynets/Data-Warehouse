@@ -4,7 +4,6 @@ import java.util.StringJoiner;
 import java.util.concurrent.ThreadLocalRandom;
 import com.example.Containers.Aggregator;
 import com.example.Containers.WriterQueue;
-import com.example.Utils.AddQuotMarks;
 import com.example.Utils.RandomCountry;
 import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
@@ -23,13 +22,13 @@ public class HotelGenerator implements Runnable {
             StringJoiner hotelStr = new StringJoiner("|", "", "\n");
             String hotelID = String.valueOf(this.aggregator.genHotelId());
             hotelStr.add(hotelID);
-            hotelStr.add(AddQuotMarks.addQuotMarks(faker.company().name().replaceAll("'", "''")));
+            hotelStr.add(faker.company().name().replaceAll("'", "''"));
             hotelStr.add(String.valueOf(random.nextInt(1, 6)));
             String country = RandomCountry.randomCountry();
             String city = RandomCountry.randomCity(country);
-            hotelStr.add(AddQuotMarks.addQuotMarks(country));
-            hotelStr.add(AddQuotMarks.addQuotMarks(city));
-            hotelStr.add(AddQuotMarks.addQuotMarks(faker.address().streetName() + " " + faker.address().buildingNumber()));
+            hotelStr.add(country);
+            hotelStr.add(city);
+            hotelStr.add(faker.address().streetName() + " " + faker.address().buildingNumber());
             this.queue.put("Hotel", hotelStr.toString());
             this.aggregator.addHotel(hotelID, city);
         }
