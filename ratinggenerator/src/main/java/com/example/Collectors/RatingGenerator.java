@@ -35,9 +35,9 @@ public class RatingGenerator {
                 String line = scanner.nextLine();
                 //if (ThreadLocalRandom.current().nextFloat() > 0.95f) continue;
                 String[] tourist = line.split("\\|");
-                if (!tourist[ColumnNumbers.statusTourist.get()].equals("'Finished'")) continue;
+                if (!tourist[ColumnNumbers.statusTourist.get()].equals("Finished")) continue;
                 String[] tour = agregator.getTour(tourist[ColumnNumbers.tourTourist.get()]);
-                if (!tour[ColumnNumbers.statusTour.get()].equals("'Finished'")) continue;
+                if (!tour[ColumnNumbers.statusTour.get()].equals("Finished")) continue;
                 String[] hotel = agregator.getHotel(tour[ColumnNumbers.hotelTour.get()]);
                 String client = tourist[ColumnNumbers.clientTourist.get()];
                 String[] rating = new String[7];
