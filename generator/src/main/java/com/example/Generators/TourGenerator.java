@@ -27,7 +27,7 @@ public class TourGenerator implements Runnable {
     private WriterQueue queue;
     private final String[] tourStatus = {"New", "Confirmed", "Recruitment", "In progress", "Finished", "Cancelled"};
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private Pair<Double, Integer> generateRoomResevation(Date startDate, int duration, String country, String tourID, String hotelID, int statusIdx) {  
+    private Pair<Double, Integer> generateRoomResevation(Date startDate, int duration, String country, String city, String tourID, String hotelID, int statusIdx) {  
         final ThreadLocalRandom random =  ThreadLocalRandom.current();
         int roomDistribution[] = IntStream.generate(() -> random.nextInt(1, 4)).limit(4).toArray();
         int numOfTourists = IntStream.of(roomDistribution).sum();
@@ -38,7 +38,7 @@ public class TourGenerator implements Runnable {
             if (Thread.currentThread().isInterrupted()) break;
             StringJoiner reservationStr = new StringJoiner("|", "", "\n");
             String reservationID = String.valueOf(this.aggregator.genReservId());
-            int priceBounds[] = RandomCountry.hotelPriceBounds(country);
+            int priceBounds[] = RandomCountry.hotelPriceBounds(country, city);
             double price = random.nextDouble(priceBounds[0], priceBounds[1] + 1);
             cumulativePrice += price;
             reservationStr.add(reservationID);
@@ -107,7 +107,7 @@ public class TourGenerator implements Runnable {
             Date startDate = RandomDate.randomDate(this.startYear, this.endYear);
             Date endDate = DateUtils.addDays(startDate, duration);
             int statusIdx = Math.random() < 0.003 ? this.tourStatus.length - 1 : this.tourStatus.length - 2;
-            Pair<Double, Integer> priceNumOfTourists = this.generateRoomResevation(startDate, duration, country, tourID, hotelID, statusIdx);
+            Pair<Double, Integer> priceNumOfTourists = this.generateRoomResevation(startDate, duration, country, city, tourID, hotelID, statusIdx);
             double price = priceNumOfTourists.getLeft() + this.generateTransportation(startDate, duration, country, tourID);
             tourStr.add(String.format("%s, %s %d days tour", city, country, duration));
             tourStr.add(this.dateFormat.format(startDate));

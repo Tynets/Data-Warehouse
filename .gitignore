@@ -2,3 +2,4 @@
 target/
 Data*/
 aggregator.bin
+*.zip
