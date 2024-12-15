@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class RatingGenerator {
     private final Agregator<String, String[]> agregator;
     private long generatedRatings = 0;
+    private long parsedLines = 0;
 
     private float clipValue(float value) {
         if (value > 5.0) return 5.0f;
@@ -30,18 +31,18 @@ public class RatingGenerator {
     public long generate(String entitiesFile) {
         try (Scanner scanner = new Scanner(new File(entitiesFile))) {
             scanner.useDelimiter("\n");
-            for (int i = 0; i < generatedRatings; i++) scanner.nextLine();
+            for (int i = 0; i < parsedLines; i++) scanner.nextLine();
             while (scanner.hasNext()) {
                 String line = scanner.nextLine();
                 //if (ThreadLocalRandom.current().nextFloat() > 0.95f) continue;
                 String[] tourist = line.split("\\|");
                 if (!tourist[ColumnNumbers.statusTourist.get()].equals("Finished")) {
-                    generatedRatings++;
+                    parsedLines++;
                     continue;
                 }
                 String[] tour = agregator.getTour(tourist[ColumnNumbers.tourTourist.get()]);
                 if (!tour[ColumnNumbers.statusTour.get()].equals("Finished")) {
-                    generatedRatings++;
+                    parsedLines++;
                     continue;
                 }
                 String[] hotel = agregator.getHotel(tour[ColumnNumbers.hotelTour.get()]);
@@ -72,6 +73,7 @@ public class RatingGenerator {
                 rating[6] = String.valueOf(rec);
                 agregator.put(rating);
                 generatedRatings++;
+                parsedLines++;
             }
         } catch (FileNotFoundException e) { e.printStackTrace(); }
         return generatedRatings;
